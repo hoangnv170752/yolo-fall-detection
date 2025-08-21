@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLOs Fall Detection Benchmark</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>YOLOs Fall Detection Benchmark</h1>
+            <p>Drag and drop images or videos to test fall detection performance</p>
+        </header>
+
+        <main>
+            <div class="upload-container">
+                <div id="drop-area" class="drop-area">
+                    <div class="drop-message">
+                        <img src="/static/upload-icon.svg" alt="Upload" id="upload-icon">
+                        <p>Drag & drop files here or</p>
+                        <label for="file-input" class="file-input-label">Browse Files</label>
+                        <input type="file" id="file-input" accept="image/*,video/*" multiple>
+                    </div>
+                </div>
+                <div class="file-list-container">
+                    <h3>Files to Process</h3>
+                    <ul id="file-list" class="file-list"></ul>
+                    
+                    <div class="form-group mb-3">
+                        <label for="model-select">Select YOLO Model:</label>
+                        <select class="form-control" id="model-select">
+                            <option value="YOLOv8">YOLOv8</option>
+                            <option value="YOLOv8-P2">YOLOv8-P2</option>
+                        </select>
+                    </div>
+                    
+                    <button id="process-btn" class="process-btn" disabled>Process Files</button>
+                </div>
+            </div>
+
+            <div class="results-container">
+                <h2>Results</h2>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="detection">Detection</button>
+                    <button class="tab-btn" data-tab="benchmark">Benchmark</button>
+                    <button class="tab-btn" data-tab="history">History</button>
+                </div>
+                
+                <div id="detection-tab" class="tab-content active">
+                    <div id="results-gallery" class="results-gallery"></div>
+                </div>
+                
+                <div id="benchmark-tab" class="tab-content">
+                    <div class="benchmark-stats">
+                        <div class="stat-card">
+                            <h3>Processing Time</h3>
+                            <div id="processing-time-chart" class="chart"></div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Confidence Distribution</h3>
+                            <div id="confidence-chart" class="chart"></div>
+                        </div>
+                    </div>
+                    <div class="benchmark-table-container">
+                        <h3>Detailed Results</h3>
+                        <table id="benchmark-table" class="benchmark-table">
+                            <thead>
+                                <tr>
+                                    <th>File</th>
+                                    <th>Type</th>
+                                    <th>Model</th>
+                                    <th>Processing Time (ms)</th>
+                                    <th>Fall Detected</th>
+                                    <th>Confidence</th>
+                                </tr>
+                            </thead>
+                            <tbody id="benchmark-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="history-tab" class="tab-content">
+                    <div class="history-header">
+                        <h3>Detection History (<span id="history-count">0</span> items)</h3>
+                        <button id="refresh-history-btn" class="refresh-btn">Refresh</button>
+                    </div>
+                    <div id="history-gallery" class="history-gallery"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>YOLO Fall Detection System | Powered by PyTorch and Unicorn</p>
+        </footer>
+    </div>
+
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>

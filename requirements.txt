@@ -1,0 +1,14 @@
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.24.0
+opencv-python>=4.7.0
+pillow>=9.4.0
+matplotlib>=3.7.0
+ultralytics>=8.0.0  # For YOLO implementation
+uvicorn>=0.22.0  # Unicorn server
+fastapi>=0.95.0  # API framework for Unicorn
+python-multipart>=0.0.6  # For handling file uploads
+requests>=2.28.0
+tqdm>=4.65.0
+pandas>=2.0.0
+scikit-learn>=1.2.0
