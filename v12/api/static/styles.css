@@ -131,6 +131,27 @@ main {
     display: none;
 }
 
+.random-photo-btn {
+    background-color: var(--primary-light);
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+}
+
+.random-photo-btn:hover:not(:disabled) {
+    background-color: var(--primary-color);
+}
+
+.random-photo-btn:disabled {
+    background-color: var(--gray-400);
+    cursor: not-allowed;
+}
+
 .file-list-container {
     margin-top: 1rem;
 }

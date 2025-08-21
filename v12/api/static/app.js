@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     const historyGallery = document.getElementById('history-gallery');
+    const randomPhotoBtn = document.getElementById('random-photo-btn');
     
     // Initialize event listeners
     initDragAndDrop();
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTabSwitching();
     initProcessButton();
     initHistoryTab();
+    initRandomPhotoButton();
     
     // Initialize process button
     function initProcessButton() {
@@ -30,6 +32,52 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Create placeholder for upload icon
     createUploadIcon();
+    
+    // Initialize random photo button
+    function initRandomPhotoButton() {
+        if (randomPhotoBtn) {
+            randomPhotoBtn.addEventListener('click', fetchRandomPhoto);
+        }
+    }
+    
+    // Fetch a random photo from the dataset
+    async function fetchRandomPhoto() {
+        try {
+            // Show loading state
+            randomPhotoBtn.disabled = true;
+            randomPhotoBtn.textContent = 'Loading...';
+            
+            // Fetch random photo from API
+            const response = await fetch(`${apiBaseUrl}/random-photo`);
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Server returned ${response.status}`);
+            }
+            
+            // Get filename from header
+            const filename = response.headers.get('X-Image-Filename') || 'random_photo.jpg';
+            
+            // Convert response to blob
+            const blob = await response.blob();
+            
+            // Create a File object from the blob
+            const file = new File([blob], filename, { type: blob.type });
+            
+            // Add file to the list
+            handleFiles([file]);
+            
+            // Show success notification
+            showNotification(`Random photo '${filename}' imported successfully`, 'success');
+        } catch (error) {
+            console.error('Error fetching random photo:', error);
+            showNotification(`Error: ${error.message}`, 'error');
+        } finally {
+            // Reset button state
+            randomPhotoBtn.disabled = false;
+            randomPhotoBtn.textContent = 'Import Random Photo';
+        }
+    }
     
     // Initialize charts
     initCharts();

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, Query, Path
+from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, Query, Path as FastAPIPath
 from fastapi.responses import StreamingResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +15,8 @@ import logging
 from datetime import datetime
 import json
 import io
+import random
+from pathlib import Path
 from .database import FallDetectionDB
 
 # Add project root to path to import model
@@ -51,6 +53,11 @@ db = None
 temp_dir = tempfile.mkdtemp()
 results_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results")
 os.makedirs(results_dir, exist_ok=True)
+
+# Path to the dataset directory
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+dataset_dir = os.path.join(project_root, "datasets", "fall_detection")
+
 
 # Create a directory for storing uploaded files
 uploads_dir = os.path.join(temp_dir, "uploads")
@@ -390,7 +397,7 @@ async def get_video_history(limit: int = Query(20, ge=1, le=100)):
     return {"videos": jobs}
 
 @app.get("/history/detection/{detection_id}")
-async def get_detection_detail(detection_id: int = Path(...)):
+async def get_detection_detail(detection_id: int = FastAPIPath(...)):
     """
     Get details of a specific detection
     
@@ -415,7 +422,7 @@ async def get_detection_detail(detection_id: int = Path(...)):
     return detection
 
 @app.get("/history/detection/{detection_id}/image/{image_type}")
-async def get_detection_image(detection_id: int = Path(...), image_type: str = Path(...)):
+async def get_detection_image(detection_id: int = FastAPIPath(...), image_type: str = FastAPIPath(...)):
     """
     Get the image for a detection
     
@@ -452,6 +459,68 @@ async def get_detection_image(detection_id: int = Path(...), image_type: str = P
         content=detection[image_data_key],
         media_type="image/jpeg"
     )
+
+# API endpoint to get a random photo from the dataset
+@app.get("/random-photo")
+async def get_random_photo():
+    """
+    Get a random photo from the fall detection dataset
+    
+    Returns:
+        Image file as a streaming response
+    """
+    # Check if dataset directory exists
+    if not os.path.exists(dataset_dir):
+        return JSONResponse(
+            status_code=404,
+            content={"error": "Dataset not found. Please run download_dataset.py first."}
+        )
+    
+    # Find all image files in the dataset directory recursively
+    image_extensions = [".jpg", ".jpeg", ".png"]
+    image_files = []
+    
+    for root, _, files in os.walk(dataset_dir):
+        for file in files:
+            if any(file.lower().endswith(ext) for ext in image_extensions):
+                image_files.append(os.path.join(root, file))
+    
+    if not image_files:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "No image files found in the dataset"}
+        )
+    
+    # Select a random image
+    random_image_path = random.choice(image_files)
+    
+    # Read the image file
+    try:
+        with open(random_image_path, "rb") as f:
+            image_data = f.read()
+        
+        # Get file extension to determine content type
+        file_ext = os.path.splitext(random_image_path)[1].lower()
+        content_type = "image/jpeg" if file_ext in [".jpg", ".jpeg"] else "image/png"
+        
+        # Get the relative path from the dataset directory
+        rel_path = os.path.relpath(random_image_path, dataset_dir)
+        
+        # Return the image as a streaming response with metadata
+        return StreamingResponse(
+            io.BytesIO(image_data),
+            media_type=content_type,
+            headers={
+                "X-Image-Path": rel_path,
+                "X-Image-Filename": os.path.basename(random_image_path)
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error reading image file: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Error reading image file: {str(e)}"}
+        )
 
 # Add static file serving for web interface
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
